@@ -3,7 +3,7 @@
 
 using namespace std;
 
-
+ 
 // Функция-разделитель вывода задач
 void taskSeparator()
 {
