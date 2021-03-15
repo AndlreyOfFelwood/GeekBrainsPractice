@@ -16,7 +16,7 @@ void taskSeparator()
 * @param fMin - минимальное значение случайного числа
 * @param fMax - максимальное значение случайного числа
 */
-double dRand(double fMin = -100, double fMax = 100)
+double myRand(double fMin = -100, double fMax = 100)
 {
     double f = (double)rand() / RAND_MAX;
     return fMin + f * (fMax - fMin);
@@ -28,9 +28,9 @@ double dRand(double fMin = -100, double fMax = 100)
 * @param fMin - минимальное значение случайного числа
 * @param fMax - максимальное значение случайного числа
 */
-int iRand(int iMin = -100, int iMax = 100)
+int myRand(int iMin = -100, int iMax = 100)
 {
-    return (rand() % (iMax * 2)) - iMin;
+    return (rand() % (iMax * 2)) - abs(iMin);
 }
 
 
@@ -45,7 +45,7 @@ void fillArr(int* arr, size_t size, int min = -100, int max = 100)
 {
     for (size_t i = 0; i < size; i++)
     {
-        arr[i] = iRand(min, max);
+        arr[i] = myRand(min, max);
     }
 }
 
@@ -60,7 +60,7 @@ void fillArr(double* arr, size_t size, int min = -100, int max = 100)
 {
     for (size_t i = 0; i < size; i++)
     {
-        arr[i] = dRand(min, max);
+        arr[i] = myRand(min, max);
     }
 }
 
@@ -69,7 +69,7 @@ void fillArr(double* arr, size_t size, int min = -100, int max = 100)
 * @param arr  - массив целых чисел
 * @param size - размер массива
 */
-void iArrOut(int* arr, size_t size)
+void arrOut(int* arr, size_t size)
 {
     for (size_t i = 0; i < size; i++)
     {
@@ -86,7 +86,7 @@ void iArrOut(int* arr, size_t size)
 * @param arr  - массив дробных чисел
 * @param size - размер массива
 */
-void dArrOut(double* arr, size_t size)
+void arrOut(double* arr, size_t size)
 {
     for (size_t i = 0; i < size; i++)
     {
