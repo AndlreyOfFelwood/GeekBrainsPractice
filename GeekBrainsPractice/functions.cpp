@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 
 using namespace std;
 
@@ -97,8 +97,8 @@ namespace MyFunc
             arr[i] > 0 ? plus++ : minus++;
         }
 
-        cout << "Îòðèöàòåëüíûõ ýëåìåíòîâ â ìàññèâå - " << minus << endl;
-        cout << "Ïîëîæèòåëüíûõ ýëåìåíòîâ â ìàññèâå - " << plus << endl;
+        cout << "ÐžÑ‚Ñ€Ð¸Ñ†Ð°Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ñ… ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð² Ð¼Ð°ÑÑÐ¸Ð²Ðµ - " << minus << endl;
+        cout << "ÐŸÐ¾Ð»Ð¾Ð¶Ð¸Ñ‚ÐµÐ»ÑŒÐ½Ñ‹Ñ… ÑÐ»ÐµÐ¼ÐµÐ½Ñ‚Ð¾Ð² Ð² Ð¼Ð°ÑÑÐ¸Ð²Ðµ - " << plus << endl;
     }
 
     void cIn(int& var)
@@ -107,12 +107,12 @@ namespace MyFunc
         {
             if (cin.fail())
             {
-                cout << "Îøèáêà, ââåäèòå ÖÅËÎÅ ×ÈÑËÎ!\n";
+                cout << "ÐžÑˆÐ¸Ð±ÐºÐ°, Ð²Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ð¦Ð•Ð›ÐžÐ• Ð§Ð˜Ð¡Ð›Ðž!\n";
                 cin.clear();
                 cin.ignore(numeric_limits<streamsize> ::max(), '\n');
             }
             else
-                cout << "Ââåäèòå öåëîå ÷èñëî:\n";
+                cout << "Ð’Ð²ÐµÐ´Ð¸Ñ‚Ðµ Ñ†ÐµÐ»Ð¾Ðµ Ñ‡Ð¸ÑÐ»Ð¾:\n";
 
             cin >> var;
         } while (cin.fail());
