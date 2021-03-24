@@ -1,181 +1,348 @@
 ﻿#include <iostream>
-#include <cmath>
-#include <fstream>
-#include <string>
-#include "functions.h"
+#include <windows.h>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
-using namespace MyFunc;
 
-#define CHECK_NUMBER(checkedNumber, maxNumber) (checkedNumber >= 0 && checkedNumber < maxNumber)
-#define SIZE 5
-
-//Структура для четвертого задания
-#pragma pack(push, 1)
-struct Emploee
+enum class TicTakToeValues
 {
-    string name = "";
-    unsigned short age = 0;
-    unsigned int salary = 0;
+    EMPTY = '_', 
+    CROSS = 'X',
+    ZERO = '0'
 };
-#pragma pack(pop)
 
-// 1. Создайте проект из 2х cpp файлов и заголовочного (main.cpp, mylib.cpp, mylib.h) во втором модуле mylib объявить 3 функции: для инициализации массива (типа float), печати его на экран и подсчета количества отрицательных и положительных элементов. Вызывайте эти 3-и функции из main для работы с массивом.
-void firstTask()
+enum class AIDifficult
 {
-    cout << "Создайте проект из 2х cpp файлов и заголовочного (main.cpp, mylib.cpp, mylib.h) во втором модуле mylib объявить 3 функции: для инициализации массива (типа float), печати его на экран и подсчета количества отрицательных и положительных элементов. Вызывайте эти 3-и функции из main для работы с массивом.\n\n";
+    EASY,
+    HARD
+};
 
-    int size = 0;
+enum class PlayerType
+{
+    HUMAN,
+    AI
+};
 
-    do
+typedef TicTakToeValues ttt;
+typedef AIDifficult aid;
+typedef PlayerType pt;
+
+struct Player
+{
+    ttt marker = ttt::CROSS;
+    bool isWon = false;
+    pt type = pt::HUMAN;
+};
+
+struct Game 
+{
+    const unsigned short sizeX = 3;
+    const unsigned short sizeY = 3;
+    ttt** field = nullptr;
+    aid difficult = aid::EASY;
+    int preferredMoves[9][2] = {
+         {1, 1}, {0, 0}, {0, 2}, {2, 0}, {2, 2},
+         {0, 1}, {1, 0}, {1, 2}, {2, 1} };
+    int winConditions[8] = {
+         0b111000000, 0b000111000, 0b000000111, // rows
+         0b100100100, 0b010010010, 0b001001001, // cols
+         0b100010001, 0b001010100               // diagonals
+    };
+    int* nextMoves[9];
+    int moveCounter = 0;
+    Player human;
+    Player ai;
+    pt activePlayer;
+    bool haveWinner = false;
+    bool draw = false;
+};
+
+void fieldSeparator()
+{
+    cout << "-------------------";
+    cout << endl;
+}
+
+void printField(Game& game)
+{
+    system("cls");
+    cout << "   | 1 | 2 | 3 |" << endl;
+    fieldSeparator();
+    for (size_t i = 0; i < game.sizeX; i++)
     {
-        cin.clear();
-        cin.ignore(numeric_limits<streamsize> ::max(), '\n');
-        cout << "Введите размер массива\n";
-        cin >> size;
-    } while (size <= 0);
+        cout << " " << i + 1 << " |";
+        for (size_t j = 0; j < game.sizeY; j++)
+        {
+            cout << " " << (char)game.field[i][j] << " |";
+        }
+        cout << endl;
+        if (i + 1 < game.sizeX)
+            fieldSeparator();
+    }
+}
 
-    float* ptrArr = new (nothrow) float[size];
-
-    if (ptrArr != nullptr)
-    {
-        fillArr(ptrArr, size);
-        arrOut(ptrArr, size);
-        plusMinusCounter(ptrArr, size);
+bool checkWin(Game &game, bool setWinner = true) {
+    Player &activePlayer = (game.activePlayer == pt::HUMAN) ? game.human : game.ai;
+    int pattern = 0b000000000;  // 9-bit pattern for the 9 cells
+    for (int row = 0; row < game.sizeX; ++row) {
+        for (int col = 0; col < game.sizeY; ++col) {
+            if (game.field[row][col] == activePlayer.marker) {
+                pattern |= (1 << (row * game.sizeY + col));
+            }
+        }
+    }
+    for (int winConditions : game.winConditions) {
+        if ((pattern & winConditions) == winConditions)
+        {
+            if (setWinner)
+                activePlayer.isWon = true;
+            return true;
+        }
     }
 
-    delete[] ptrArr;
+    return false;
 }
 
-
-// 2. Описать макрокоманду (через директиву define), проверяющую, входит ли переданное ей число (введенное с клавиатуры) в диапазон от нуля (включительно) до переданного ей второго аргумента (исключительно) и возвращает true или false, вывести на экран «true» или «false».
-void secondTask()
+bool checkDraw(Game &game)
 {
-    cout << "Описать макрокоманду (через директиву define), проверяющую, входит ли переданное ей число (введенное с клавиатуры) в диапазон от нуля (включительно) до переданного ей второго аргумента (исключительно) и возвращает true или false, вывести на экран «true» или «false».\n\n";
-    int checkedNumber, maxNumber = 50;
-
-    cIn(checkedNumber);
-
-    CHECK_NUMBER(checkedNumber, maxNumber) == 1 ?
-        cout << "True\n" :
-        cout << "False\n";
-}
-
-// 3. Задайте массив типа int. Пусть его размер задается через директиву препроцессора #define. Инициализируйте его через ввод с клавиатуры. Напишите для него свою функцию сортировки (например Пузырьком). Реализуйте перестановку элементов как макрокоманду SwapINT(a, b). Вызывайте ее из цикла сортировки.
-void thirdTask()
-{
-    cout << "Задайте массив типа int. Пусть его размер задается через директиву препроцессора #define. Инициализируйте его через ввод с клавиатуры. Напишите для него свою функцию сортировки (например Пузырьком). Реализуйте перестановку элементов как макрокоманду SwapINT(a, b). Вызывайте ее из цикла сортировки.\n\n";
-
-    int arr[SIZE];
-
-    for (size_t i = 0; i < SIZE; i++)
+    for (size_t i = 0; i < game.sizeX; i++)
     {
-        cout << "Введите " << i << " элемент массива\n";
-        cIn(arr[i]);
+        for (size_t j = 0; j < game.sizeY; j++)
+        {
+            if (game.field[i][j] == ttt::EMPTY)
+            {
+                game.draw = false;
+                return game.draw;
+            }
+        }
+    }
+    game.draw = true;
+    return game.draw;
+}
+
+void chooseDificult(Game& game)
+{
+    unsigned short dif = 0;
+    cout << "\nВыберите сложность:\n";
+    cout << "Введите 1, чтобы сыграть со слабым компьютером,\n или 2, чтобы сыграть с сильным компьютером.\n";
+    cin >> dif;
+
+    if (dif == 1)
+        game.difficult = aid::EASY;
+    else if (dif == 2)
+        game.difficult = aid::HARD;
+    else
+        chooseDificult(game);
+}
+
+void aiEasyMode(Game& game)
+{
+    for (int* arr : game.preferredMoves)
+    {
+        if (game.field[arr[0]][arr[1]] == ttt::EMPTY)
+        {
+            game.field[arr[0]][arr[1]] = game.ai.marker;
+            break;
+        }
+    }
+}
+
+bool aiNormalMode(Game& game)
+{
+    for (size_t i = 0; i < game.sizeX; i++)
+    {
+        for (size_t j = 0; j < game.sizeY; j++)
+        {
+            if (game.field[i][j] == ttt::EMPTY)
+            {
+                game.field[i][j] = game.ai.marker;
+                if (checkWin(game, false))
+                    return true;
+
+                game.field[i][j] = ttt::EMPTY;
+            }
+        }
     }
 
-    cout << "\nМассив до сортировки:\n\n";
-    arrOut(arr, SIZE);
+    for (size_t i = 0; i < game.sizeX; i++)
+    {
+        for (size_t j = 0; j < game.sizeY; j++)
+        {
+            if (game.field[i][j] == ttt::EMPTY)
+            {
+                game.field[i][j] = game.human.marker;
+                game.activePlayer = pt::HUMAN;
+                if (checkWin(game, false))
+                {
+                    game.field[i][j] = game.ai.marker;
+                    game.activePlayer = pt::AI;
+                    return true;
+                }
+                game.field[i][j] = ttt::EMPTY;
+            }
+        }
+    }
 
-    arraySort(arr, SIZE);
-
-    cout << "\nМассив после сортировки:\n\n";
-    arrOut(arr, SIZE);
+    game.activePlayer = pt::AI;
+    aiEasyMode(game);
 }
 
-//Функция для четвертого задания
-void structOut(Emploee* emploee)
+void aiMove(Game &game)
 {
-    cout << "Профайл работника:\n\n";
-    cout << "Имя: ";
-    cout << emploee->name << endl;
-    cout << "Возраст: ";
-    cout << emploee->age << endl;
-    cout << "Зарплата: ";
-    cout << emploee->salary << endl;
+    if (game.difficult == aid::EASY)
+        aiEasyMode(game);
+    else if (game.difficult == aid::HARD)
+        aiNormalMode(game);
+
+    printField(game);
 }
 
-// 4. * Объявить структуру Сотрудник с различными полями. Сделайте для нее побайтовое выравнивание с помощью директивы pragma pack. Выделите динамически переменную этого типа. Инициализируйте ее. Выведите ее на экран и ее размер с помощью sizeof. Сохраните эту структуру в текстовый файл.
-void fourthTask()
+void getCoord(unsigned short &coord)
 {
-    cout << "\n* Объявить структуру Сотрудник с различными полями. Сделайте для нее побайтовое выравнивание с помощью директивы pragma pack. Выделите динамически переменную этого типа. Инициализируйте ее. Выведите ее на экран и ее размер с помощью sizeof. Сохраните эту структуру в текстовый файл.\n\n";
+    while (true)
+    {
+        std::cin >> coord;
 
-
-
-    Emploee* emploee = new (nothrow) Emploee;
-
-    emploee->name = "Иванов Иван Иванович";
-    emploee->age = 33;
-    emploee->salary = 77'777;
-
-    structOut(emploee);
-
-    cout << "\nРазмер структуры: ";
-    cout << sizeof(emploee) << endl;
-    
-    ofstream fout("emploee.txt");
-    
-    fout << "Профайл работника:\n\n";
-    fout << "Имя: ";
-    fout << emploee->name << endl;
-    fout << "Возраст: ";
-    fout << emploee->age << endl;
-    fout << "Зарплата: ";
-    fout << emploee->salary << endl;
-
-    fout.close();
-
-    delete emploee;
+        if (std::cin.fail())
+        {
+            std::cin.clear();
+            std::cin.ignore(32767, '\n');
+            std::cout << "Введите корректное число!\n";
+        }
+        else
+        {
+            std::cin.ignore(32767, '\n');
+            break;
+        }
+    }
 }
 
-
-// 5. * Сделайте задание 1 добавив свой неймспейс во втором модуле (первое задание тогда можно не делать)
-void fifthTask()
+void humanMove(Game &game)
 {
-    firstTask();
+    unsigned short coordY, coordX;
+
+    cout << "\nВведите кординаты клетки:\n\n";
+
+    cout << "Введите координату по оси X:\n";
+    getCoord(coordX);
+    cout << "Введите координату по оси Y:\n";
+    getCoord(coordY);
+
+    if (game.field[coordY - 1][coordX - 1] == ttt::EMPTY)
+    {
+        game.field[coordY - 1][coordX - 1] = game.human.marker;
+        printField(game);
+    }
+    else
+        humanMove(game);
 }
 
+unsigned short coinFlip()
+{
+    srand(static_cast<unsigned int>(time(0)));
+    unsigned short flip = rand() % 2 + 1;
+    return flip;
+}
+
+void swapPlayer(Game& game)
+{
+    if (game.activePlayer == pt::HUMAN)
+        game.activePlayer = pt::AI;
+    else
+        game.activePlayer = pt::HUMAN;
+}
+
+void getMove(Game &game)
+{
+    if (game.activePlayer == pt::HUMAN)
+        humanMove(game);
+    else if (game.activePlayer == pt::AI)
+        aiMove(game);
+}
+
+void getMoveOrder(Game& game)
+{
+    cout << "\nБросаем монетку чтобы решить кто будет ходить первым...\n";
+    if (coinFlip() == 1)
+    {
+        cout << "\nПоздравляю, вы ходите первым!\n";
+        cout << "\nВы будете играть " << (char)ttt::CROSS << "\n";
+        game.human.marker = ttt::CROSS;
+        game.human.type = pt::HUMAN;
+        game.activePlayer = pt::HUMAN;
+        game.ai.marker = ttt::ZERO;
+    }
+    else
+    {
+        cout << "\nУвы, но компьютер будет ходить первым(\n";
+        cout << "\nВы будете играть " << (char)ttt::ZERO << "\n";
+        game.ai.marker = ttt::CROSS;
+        game.ai.type = pt::AI;
+        game.activePlayer = pt::AI;
+        game.human.marker = ttt::ZERO;
+    }
+    system("pause");
+}
+
+void gameInit(Game &game)
+{
+    game.field = new  TicTakToeValues * [game.sizeX];
+
+    for (size_t i = 0; i < game.sizeX; i++)
+        game.field[i] = new TicTakToeValues[game.sizeY];
+
+    for (size_t i = 0; i < game.sizeX; i++)
+        for (size_t j = 0; j < game.sizeY; j++)
+            game.field[i][j] = ttt::EMPTY;
+
+    game.ai.marker = ttt::ZERO;
+    game.ai.type = pt::AI;
+}
+
+void deinitGame(Game& game)
+{
+    for (size_t i = 0; i < game.sizeY; i++)
+        delete[] game.field[i];
+
+    delete[] game.field;
+    game.field = nullptr;
+}
 
 int main()
 {
     setlocale(LC_ALL, "Russian");
 
-    unsigned short numberOfTask = 0;
+    Game game;
 
+    gameInit(game);
+    printField(game);
+    chooseDificult(game);
+    getMoveOrder(game);
     do
     {
-        cout << "Введите номер задания от 1 до 5 или 0 для выхода из программы" << endl;
-        cin >> numberOfTask;
+        getMove(game);
 
-        if (numberOfTask >= 0 && numberOfTask <= 5)
+        if (checkWin(game))
         {
-            switch (numberOfTask)
-            {
-            case 1:
-                firstTask();
-                break;
-            case 2:
-                secondTask();
-                break;
-            case 3:
-                thirdTask();
-                break;
-            case 4:
-                fourthTask();
-                break;
-            case 5:
-                fifthTask();
-                break;
-            case 0:
-                cout << "Выход из программы" << endl;
-                break;
-            }
-
-            taskSeparator();
+            game.haveWinner = true;
+            break;
         }
-    } while (numberOfTask != 0);
+        if (checkDraw(game))
+            break;
 
-    
+        swapPlayer(game);
 
+    } while (!game.haveWinner || !game.draw);
+
+    if (game.human.isWon == true)
+        cout << "\nПобедил человек!\n";
+    else if (game.ai.isWon == true)
+        cout << "\nСкайнет победил!\n";
+    else
+        cout << "Ничья.\n";
+
+
+    deinitGame(game);
     return 0;
 }
