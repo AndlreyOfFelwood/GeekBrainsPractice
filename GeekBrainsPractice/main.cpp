@@ -148,7 +148,7 @@ void aiEasyMode(Game& game)
     }
 }
 
-bool aiNormalMode(Game& game)
+bool aiHardMode(Game& game)
 {
     for (size_t i = 0; i < game.sizeX; i++)
     {
